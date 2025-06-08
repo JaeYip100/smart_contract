@@ -1,9 +1,9 @@
 async function main() {
-  const MediaRights = await ethers.getContractFactory('MediaRights');
+  const MediaRights = await ethers.getContractFactory("MediaRights");
   const media = await MediaRights.deploy();
-  await media.deployed();
+  await media.waitForDeployment();
 
-  console.log(`Contract deployed to: ${media.address}`);
+  console.log(`Contract deployed to: ${media.target}`);
 }
 
 main().catch((error) => {
