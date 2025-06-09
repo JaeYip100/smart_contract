@@ -15,6 +15,9 @@ npx hardhat ignition deploy ./ignition/modules/Lock.js
 ## Commands:
 
 ```bash
+# Terminal 1:
 npm run node # Run local hardhat server
+
+# Terminal 2:
 npm run deploy # Deploy contracts using deploy.js script
 ```
