@@ -11,3 +11,10 @@ REPORT_GAS=true npx hardhat test
 npx hardhat node
 npx hardhat ignition deploy ./ignition/modules/Lock.js
 ```
+
+## Commands:
+
+```bash
+npm run node # Run local hardhat server
+npm run deploy # Deploy contracts using deploy.js script
+```
