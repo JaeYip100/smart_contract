@@ -1,113 +1,98 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-contract MediaRights {
-    struct MediaItem {
-        string title;
-        address payable owner;
-        string ipfsHash;
-        uint256 timestamp;
-        uint256 royaltyFee; // in wei
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+
+
+
+contract MediaRights is ERC721, ERC721URIStorage, Ownable {
+    uint256 public tokenCount;
+
+    struct MediaDetails {
+        uint256 royaltyFee;       // Royalty fee in wei
+        address payable creator;  // Original creator
     }
 
-    // Media ID => MediaItem
-    mapping(bytes32 => MediaItem) private mediaLibrary;
-    bytes32[] private mediaKeys;
+    // tokenId => MediaDetails
+    mapping(uint256 => MediaDetails) public mediaData;
 
-    event MediaRegistered(
-        bytes32 indexed mediaId,
-        address indexed owner,
-        string title,
-        string ipfsHash,
+    event MediaMinted(
+        uint256 indexed tokenId,
+        address indexed creator,
+        string metadataURI,
         uint256 royaltyFee
     );
 
     event MediaAccessed(
-        bytes32 indexed mediaId,
-        address indexed user,
+        uint256 indexed tokenId,
+        address indexed buyer,
         uint256 amountPaid
     );
 
-    /// @notice Register new media with optional royalty fee
-    function registerMedia(
-        string memory _title,
-        string memory _ipfsHash,
-        uint256 _royaltyFee
-    ) public {
-        require(bytes(_title).length > 0, "Title is required");
-        require(bytes(_ipfsHash).length > 0, "IPFS hash is required");
+    constructor(address initialOwner)
+        ERC721("MediaRights", "MNFT")
+        Ownable(initialOwner)
+    {}
 
-        bytes32 mediaId = keccak256(abi.encodePacked(_title, _ipfsHash, msg.sender));
-        require(mediaLibrary[mediaId].owner == address(0), "Media already registered");
+    /// @notice Mint a new NFT with royalty fee and metadata
+    function mintNFT(
+        address recipient,
+        string memory metadataURI,
+        uint256 royaltyFee
+    ) public returns (uint256) {
+        uint256 newTokenId = tokenCount;
 
-        mediaLibrary[mediaId] = MediaItem({
-            title: _title,
-            owner: payable(msg.sender),
-            ipfsHash: _ipfsHash,
-            timestamp: block.timestamp,
-            royaltyFee: _royaltyFee
+        _mint(recipient, newTokenId);
+        _setTokenURI(newTokenId, metadataURI);
+
+        mediaData[newTokenId] = MediaDetails({
+            royaltyFee: royaltyFee,
+            creator: payable(msg.sender)
         });
 
-        mediaKeys.push(mediaId);
-        emit MediaRegistered(mediaId, msg.sender, _title, _ipfsHash, _royaltyFee);
+        tokenCount++;
+
+        emit MediaMinted(newTokenId, msg.sender, metadataURI, royaltyFee);
+        return newTokenId;
     }
 
-    /// @notice Access media by paying the royalty fee
-    function accessMedia(bytes32 _mediaId) public payable returns (string memory) {
-        MediaItem storage item = mediaLibrary[_mediaId];
-        require(item.owner != address(0), "Media not found");
-        require(msg.value >= item.royaltyFee, "Insufficient payment");
+    /// @notice Pay to access media (simulate royalty system)
+    function accessMedia(uint256 tokenId) public payable returns (string memory) {
+        require(_exists(tokenId), "NFT does not exist");
+        MediaDetails memory media = mediaData[tokenId];
+        require(msg.value >= media.royaltyFee, "Insufficient payment");
 
-        item.owner.transfer(msg.value); // Send royalty
-        emit MediaAccessed(_mediaId, msg.sender, msg.value);
-        return item.ipfsHash;
+        // Transfer royalty to creator
+        media.creator.transfer(msg.value);
+
+        emit MediaAccessed(tokenId, msg.sender, msg.value);
+        return tokenURI(tokenId);
     }
 
-    /// @notice Get metadata for a single media item
-    function getMedia(bytes32 _mediaId)
-        public
-        view
-        returns (
-            string memory title,
-            address owner,
-            string memory ipfsHash,
-            uint256 timestamp,
-            uint256 royaltyFee
-        )
-    {
-        MediaItem memory item = mediaLibrary[_mediaId];
-        require(item.owner != address(0), "Media not found");
-        return (item.title, item.owner, item.ipfsHash, item.timestamp, item.royaltyFee);
+    /// @notice Get royalty fee of NFT
+    function getRoyaltyFee(uint256 tokenId) public view returns (uint256) {
+        require(_exists(tokenId), "NFT does not exist");
+        return mediaData[tokenId].royaltyFee;
     }
 
-    /// @notice List all media IDs
-    function getAllMediaIds() public view returns (bytes32[] memory) {
-        return mediaKeys;
+    /// @notice Get creator of NFT
+    function getCreator(uint256 tokenId) public view returns (address) {
+        require(_exists(tokenId), "NFT does not exist");
+        return mediaData[tokenId].creator;
     }
+}
+function _burn(uint256 tokenId) internal override(ERC721, ERC721URIStorage) {
+    super._burn(tokenId);
+}
 
-    /// @notice Get media items uploaded by a specific address
-    function getMediaByOwner(address _owner) public view returns (bytes32[] memory) {
-        uint256 count = 0;
-        for (uint256 i = 0; i < mediaKeys.length; i++) {
-            if (mediaLibrary[mediaKeys[i]].owner == _owner) {
-                count++;
-            }
-        }
-
-        bytes32[] memory result = new bytes32[](count);
-        uint256 idx = 0;
-        for (uint256 i = 0; i < mediaKeys.length; i++) {
-            if (mediaLibrary[mediaKeys[i]].owner == _owner) {
-                result[idx++] = mediaKeys[i];
-            }
-        }
-
-        return result;
-    }
-
-    /// @notice Get royalty fee for a specific media
-    function getRoyaltyFee(bytes32 _mediaId) public view returns (uint256) {
-        require(mediaLibrary[_mediaId].owner != address(0), "Media not found");
-        return mediaLibrary[_mediaId].royaltyFee;
-    }
+function tokenURI(uint256 tokenId)
+    public
+    view
+    override(ERC721, ERC721URIStorage)
+    returns (string memory)
+{
+    return super.tokenURI(tokenId);
 }
