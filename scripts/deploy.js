@@ -7,7 +7,7 @@ async function main() {
   const MediaRights = await ethers.getContractFactory("MediaRights");
 
   const media = await MediaRights.deploy(deployer.address);
-  await media.waitForDeployment();
+  await media.deployed();
 
   console.log(`Contract deployed to: ${media.target}`);
   console.log(`Contract owner: ${deployer.address}`);

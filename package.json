@@ -5,7 +5,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "node": "npx hardhat node",
-    "deploy": "npx hardhat run scripts/deploy.js --network localhost"
+    "deploy": "npx hardhat run scripts/deploy.js --network localhost",
+    "deploy:sepolia": "npx hardhat run scripts/deploy-sepolia.js --network sepolia"
   },
   "keywords": [],
   "author": "",
@@ -13,9 +14,13 @@
   "description": "",
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "dotenv": "^17.0.0",
     "hardhat": "^2.24.2"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^5.3.0"
+    "@nomiclabs/hardhat-ethers": "^2.2.3",
+    "@openzeppelin/contracts": "^5.3.0",
+    "alchemy-sdk": "^3.6.1",
+    "ethers": "^5.8.0"
   }
 }
