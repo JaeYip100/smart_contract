@@ -9,12 +9,12 @@ async function main() {
   const media = await MediaRights.deploy(deployer.address);
   await media.deployed();
 
-  console.log(`Contract deployed to: ${media.target}`);
+  console.log(`Contract deployed to: ${media.address}`);
   console.log(`Contract owner: ${deployer.address}`);
 
   fs.writeFileSync(
     "../blockchain-frontend/src/contracts/contract-address.json",
-    JSON.stringify({ mediaRights: media.target }, null, 2)
+    JSON.stringify({ mediaRights: media.address }, null, 2)
   );
 
   console.log(

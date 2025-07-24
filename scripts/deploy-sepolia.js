@@ -7,6 +7,7 @@ async function main() {
    
    await myNFT.deployed();
 
+   console.log("Contract Owner:", deployer.address);
    console.log("Contract deployed to address:", myNFT.address);
 }
 
