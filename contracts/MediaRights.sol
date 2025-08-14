@@ -12,10 +12,10 @@ contract MediaRights is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard {
     uint256 public platformRoyalty = 250; // 2.5% platform fee on sales (in basis points)
     
     struct MediaDetails {
-        uint256 creatorRoyalty;     // Creator royalty in basis points (e.g., 500 = 5%)
-        address payable creator;    // Original creator
-        uint256 salePrice;         // Current listing price (0 = not for sale)
-        bool isForSale;           // Whether NFT is currently listed
+        uint256 creatorRoyalty;         // Creator royalty in basis points (e.g., 500 = 5%)
+        address payable creator;        // Original creator
+        uint256 salePrice;              // Current listing price (0 = not for sale)
+        bool isForSale;                 // Whether NFT is currently listed
     }
     
     // tokenId => MediaDetails
